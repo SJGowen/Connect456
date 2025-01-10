@@ -1,0 +1,188 @@
+@using Connect456.Data
+
+@code {
+    [Parameter]
+    public int Cols { get; set; }
+    [Parameter]
+    public int Rows { get; set; }
+    [Parameter]
+    public int InARow { get; set; }
+
+    GameBoard board;
+    PieceColor currentTurn = PieceColor.Red;
+    WinningPlay winningPlay;
+    string boardStyle = "background-color: blue; display: flex; flex-direction: row; max-width: fit-content";
+
+    protected override void OnInitialized()
+    {
+        board = new GameBoard(Cols, Rows);
+        StateHasChanged();
+    }
+
+    private void PieceClicked(int col, int row)
+    {
+        if (winningPlay != null) { return; }
+
+        GamePiece clickedSpace = GetValidPiece(col, row);
+
+        if (clickedSpace.Color == PieceColor.Blank)
+        {
+            int tempRow = row;
+
+            while (true)
+            {
+                tempRow++;
+                if (tempRow >= Rows) { break; }
+                GamePiece nextSpace = GetValidPiece(col, tempRow);
+
+                if (nextSpace.Color == PieceColor.Blank)
+                {
+                    row = tempRow;
+                    clickedSpace = nextSpace;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            clickedSpace.Color = currentTurn;
+
+            winningPlay = GetWinner(col, row);
+
+            if (winningPlay == null)
+            {
+                SwitchTurns();
+            }
+        }
+    }
+
+    private void SwitchTurns()
+    {
+        currentTurn = currentTurn == PieceColor.Red ? PieceColor.Yellow : PieceColor.Red;
+    }
+
+    private WinningPlay GetWinner(int col, int row)
+    {
+        return EvaluateForWinner(col, row, EvaluationDirection.Vertical) ??
+               EvaluateForWinner(col, row, EvaluationDirection.Horizontal) ??
+               EvaluateForWinner(col, row, EvaluationDirection.SlopeUp) ??
+               EvaluateForWinner(col, row, EvaluationDirection.SlopeDown);
+    }
+
+    private WinningPlay EvaluateForWinner(int col, int row, EvaluationDirection direction)
+    {
+        GamePiece piece = GetValidPiece(col, row);
+        (col, row) = MoveToStart(col, row, direction, piece.Color);
+
+        return EvaluateBoardForWinner(col, row, direction);
+    }
+
+    private (int, int) MoveToStart(int col, int row, EvaluationDirection direction, PieceColor color)
+    {
+        while (IsWithinBounds(col, row) && GetValidPiece(col, row).Color == color)
+        {
+            (col, row) = direction switch
+            {
+                EvaluationDirection.Vertical => (col, row - 1),
+                EvaluationDirection.Horizontal => (col - 1, row),
+                EvaluationDirection.SlopeUp => (col - 1, row + 1),
+                EvaluationDirection.SlopeDown => (col - 1, row - 1),
+                _ => (col, row)
+            };
+        }
+
+        return direction switch
+        {
+            EvaluationDirection.Vertical => (col, row + 1),
+            EvaluationDirection.Horizontal => (col + 1, row),
+            EvaluationDirection.SlopeUp => (col + 1, row - 1),
+            EvaluationDirection.SlopeDown => (col + 1, row + 1),
+            _ => (col, row)
+        };
+    }
+
+    private bool IsWithinBounds(int col, int row)
+    {
+        return col >= 0 && col < Cols && row >= 0 && row < Rows;
+    }
+
+    private GamePiece GetValidPiece(int col, int row)
+    {
+        if (!IsWithinBounds(col, row))
+        {
+            throw new Exception($"Attempted to get piece for Col {col}, Row {row}. This is out of range!");
+        }
+
+        return board.Board[col, row];
+    }
+
+    private WinningPlay EvaluateBoardForWinner(int col, int row, EvaluationDirection direction)
+    {
+        var winningMoves = new List<string> { $"{col},{row}" };
+
+        while (true)
+        {
+            (col, row) = direction switch
+            {
+                EvaluationDirection.Vertical => (col, row + 1),
+                EvaluationDirection.Horizontal => (col + 1, row),
+                EvaluationDirection.SlopeUp => (col + 1, row - 1),
+                EvaluationDirection.SlopeDown => (col + 1, row + 1),
+                _ => (col, row)
+            };
+
+            if (!IsWithinBounds(col, row) || GetValidPiece(col, row).Color != currentTurn) { break; }
+
+            winningMoves.Add($"{col},{row}");
+        }
+
+        if (winningMoves.Count >= InARow)
+        {
+            return new WinningPlay
+                {
+                    WinningMoves = winningMoves,
+                    WinningColor = currentTurn,
+                    WinningDirection = direction,
+                };
+        }
+
+        return null;
+    }
+
+    private bool IsGamePieceAWinningPiece(WinningPlay winningPlay, int col, int row)
+    {
+        return winningPlay?.WinningMoves?.Contains($"{col},{row}") ?? false;
+    }
+
+    private void Reset()
+    {
+        board = new GameBoard(Cols, Rows);
+        SwitchTurns();
+        winningPlay = null;
+    }
+}
+
+@if (winningPlay == null)
+{
+    <h2>@currentTurn's Turn!</h2>
+}
+else
+{
+    <h2>@winningPlay.WinningColor Wins! <button class="btn btn-success" @onclick="Reset">Restart</button></h2>
+}
+
+<div class="board" style="@boardStyle">
+    @for (int col = 0; col < Cols; col++)
+    {
+        <div class="column">
+            @for (int row = 0; row < Rows; row++)
+            {
+                int savedCol = col;
+                int savedRow = row;
+                <div class="gamepiece @board.Board[col,row].Color.ToString().ToLower()" @onclick="@(() => PieceClicked(savedCol, savedRow))"
+                     style="@(IsGamePieceAWinningPiece(winningPlay, col, row) ? "opacity: 0.6" : "")"></div>
+            }
+        </div>
+    }
+</div>

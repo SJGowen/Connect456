@@ -1,6 +1,15 @@
 @using Connect456.Data
 
+@using Connect456.Data
+
 @code {
+    // This is the base class for the Connect Four game board. It contains the logic for the game board and the game pieces.
+    // The Connect/Four/Five/Six/.razor files inherit from this class and use the logic to create the game board.
+    // The game board is a grid of game pieces that can be clicked to place a piece in the column.
+    // The game board will check for a winning play after each move and display a message if a player has won.
+    // The game board will also switch turns between the two players after each move.
+    // The game board can be reset by clicking the "Restart" button after a player has won.
+
     [Parameter]
     public int Cols { get; set; }
     [Parameter]
@@ -13,12 +22,14 @@
     WinningPlay winningPlay;
     string boardStyle = "background-color: blue; display: flex; flex-direction: row; max-width: fit-content";
 
+    // Initializes the game board with the specified number of columns and rows.
     protected override void OnInitialized()
     {
         board = new GameBoard(Cols, Rows);
         StateHasChanged();
     }
 
+    // Handles the click event on a game piece. Places a piece in the column and checks for a winning play.
     private void PieceClicked(int col, int row)
     {
         if (winningPlay != null) { return; }
@@ -40,6 +51,7 @@
         }
     }
 
+    // Gets the lowest empty row in the specified column.
     private int GetLowestEmptyRow(int col, int row)
     {
         while (row < Rows - 1 && GetValidPiece(col, row + 1).Color == PieceColor.Blank)
@@ -50,11 +62,13 @@
         return row;
     }
     
+    // Switches the turn between the two players.
     private void SwitchTurns()
     {
         currentTurn = currentTurn == PieceColor.Red ? PieceColor.Yellow : PieceColor.Red;
     }
 
+    // Checks if there is a winning play starting from the specified column and row.
     private WinningPlay GetWinner(int col, int row)
     {
         return EvaluateForWinner(col, row, EvaluationDirection.Vertical) ??
@@ -63,6 +77,7 @@
                EvaluateForWinner(col, row, EvaluationDirection.SlopeDown);
     }
 
+    // Evaluates if there is a winning play in the specified direction.
     private WinningPlay EvaluateForWinner(int col, int row, EvaluationDirection direction)
     {
         GamePiece piece = GetValidPiece(col, row);
@@ -71,6 +86,7 @@
         return EvaluateBoardForWinner(col, row, direction);
     }
 
+    // Moves to the start of the sequence of pieces in the specified direction.
     private (int, int) MoveToStart(int col, int row, EvaluationDirection direction, PieceColor color)
     {
         while (IsWithinBounds(col, row) && GetValidPiece(col, row).Color == color)
@@ -95,11 +111,13 @@
         };
     }
 
+    // Checks if the specified column and row are within the bounds of the game board.
     private bool IsWithinBounds(int col, int row)
     {
         return col >= 0 && col < Cols && row >= 0 && row < Rows;
     }
 
+    // Gets the game piece at the specified column and row.
     private GamePiece GetValidPiece(int col, int row)
     {
         if (!IsWithinBounds(col, row))
@@ -110,6 +128,7 @@
         return board.Board[col, row];
     }
 
+    // Evaluates the board for a winning play in the specified direction.
     private WinningPlay EvaluateBoardForWinner(int col, int row, EvaluationDirection direction)
     {
         var winningMoves = new List<string> { $"{col},{row}" };
@@ -142,11 +161,13 @@
         return null;
     }
 
+    // Checks if the specified game piece is part of the winning play.
     private bool IsGamePieceAWinningPiece(WinningPlay winningPlay, int col, int row)
     {
         return winningPlay?.WinningMoves?.Contains($"{col},{row}") ?? false;
     }
 
+    // Resets the game board to its initial state.
     private void Reset()
     {
         board = new GameBoard(Cols, Rows);

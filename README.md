@@ -1,6 +1,6 @@
 ﻿# Connect456
 
-Connect456 is a Blazor-based web application for playing a Connect Four-style game. The game allows two players to take turns dropping colored pieces into a vertical grid, with the goal of getting four pieces in a row horizontally, vertically, or diagonally.
+Connect456 is a Blazor-based web application for playing a Connect Four-style game. The game allows two players to take turns dropping colored pieces into a vertical grid, with the goal of getting four, five or six pieces in a row horizontally, vertically, or diagonally.
 
 ## Features
 

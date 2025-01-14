@@ -4,6 +4,8 @@ VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Connect456", "Connect456\Connect456.csproj", "{CAC7451B-492F-45FB-9B48-87EA8B6DFDB3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Connect456.UnitTests", "Connect456.UnitTests\Connect456.UnitTests.csproj", "{BF180FCD-64DD-4694-9D3A-EC44E8D88EE1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,6 +16,10 @@ Global
 		{CAC7451B-492F-45FB-9B48-87EA8B6DFDB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CAC7451B-492F-45FB-9B48-87EA8B6DFDB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CAC7451B-492F-45FB-9B48-87EA8B6DFDB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF180FCD-64DD-4694-9D3A-EC44E8D88EE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF180FCD-64DD-4694-9D3A-EC44E8D88EE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF180FCD-64DD-4694-9D3A-EC44E8D88EE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF180FCD-64DD-4694-9D3A-EC44E8D88EE1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

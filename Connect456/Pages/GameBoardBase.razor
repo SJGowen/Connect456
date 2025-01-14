@@ -28,7 +28,7 @@
     }
 
     // Handles the click event on a game piece. Places a piece in the column and checks for a winning play.
-    private void PieceClicked(int col, int row)
+    internal void PieceClicked(int col, int row)
     {
         if (winningPlay != null) { return; }
 
@@ -67,7 +67,7 @@
     }
 
     // Checks if there is a winning play starting from the specified column and row.
-    private WinningPlay GetWinner(int col, int row)
+    internal WinningPlay GetWinner(int col, int row)
     {
         return EvaluateForWinner(col, row, EvaluationDirection.Vertical) ??
                EvaluateForWinner(col, row, EvaluationDirection.Horizontal) ??
@@ -116,7 +116,7 @@
     }
 
     // Gets the game piece at the specified column and row.
-    private GamePiece GetValidPiece(int col, int row)
+    internal GamePiece GetValidPiece(int col, int row)
     {
         if (!IsWithinBounds(col, row))
         {

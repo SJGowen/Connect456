@@ -68,7 +68,7 @@ public class GameBoardBaseTests : TestContext
     }
 
     [Fact]
-    public void GetWinner_DetectsWinningPlay()
+    public void GetWinner_DetectsVerticalWin()
     {
         // Arrange
         var cut = RenderComponent<GameBoardBase>(parameters => parameters
@@ -90,5 +90,139 @@ public class GameBoardBaseTests : TestContext
         var winner = cut.Instance.GetWinner(0, 2);
         Assert.NotNull(winner);
         Assert.Equal(PieceColor.Red, winner.WinningColor);
+    }
+
+    [Fact]
+    public void GetWinner_DetectsHorizontalWin()
+    {
+        // Arrange
+        var cut = RenderComponent<GameBoardBase>(parameters => parameters
+            .Add(p => p.Cols, 7)
+            .Add(p => p.Rows, 6)
+            .Add(p => p.InARow, 4)
+        );
+
+        // Act
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(0, 0)); // Red
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(0, 1)); // Yellow
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(1, 0)); // Red
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(1, 1)); // Yellow
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(2, 0)); // Red
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(2, 1)); // Yellow
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(3, 0)); // Red
+
+        // Assert
+        var winner = cut.Instance.GetWinner(3, 5);
+        Assert.NotNull(winner);
+        Assert.Equal(PieceColor.Red, winner.WinningColor);
+    }
+
+    [Fact]
+    public void GetWinner_DetectSlopeUpWin()
+    {
+        // Arrange
+        var cut = RenderComponent<GameBoardBase>(parameters => parameters
+            .Add(p => p.Cols, 7)
+            .Add(p => p.Rows, 6)
+            .Add(p => p.InARow, 4)
+        );
+
+        // Act - Pieces fall to bottom row which is empty
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(1, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(2, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(2, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(3, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(3, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(4, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(5, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(4, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(3, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(4, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(4, 0));
+
+        // Assert
+        var winner = cut.Instance.GetWinner(4, 2);
+        Assert.NotNull(winner);
+        Assert.Equal(PieceColor.Red, winner.WinningColor);
+    }
+
+    [Fact]
+    public void GetWinner_DetectSlopeDownWin()
+    {
+        // Arrange
+        var cut = RenderComponent<GameBoardBase>(parameters => parameters
+            .Add(p => p.Cols, 7)
+            .Add(p => p.Rows, 6)
+            .Add(p => p.InARow, 4)
+        );
+
+        // Act - Pieces fall to bottom row which is empty
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(4, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(5, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(3, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(4, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(2, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(1, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(3, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(3, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(2, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(1, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(2, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(2, 0));
+
+        // Assert
+        var winner = cut.Instance.GetWinner(2, 2);
+        Assert.NotNull(winner);
+        Assert.Equal(PieceColor.Yellow, winner.WinningColor);
+    }
+
+    [Fact]
+    public async Task PieceClicked_HandlesInvalidColumn()
+    {
+        // Arrange
+        var cut = RenderComponent<GameBoardBase>(parameters => parameters
+            .Add(p => p.Cols, 7)
+            .Add(p => p.Rows, 6)
+            .Add(p => p.InARow, 4)
+        );
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => cut.InvokeAsync(() => cut.Instance.PieceClicked(-1, 0)));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => cut.InvokeAsync(() => cut.Instance.PieceClicked(7, 0)));
+    }
+
+    [Fact]
+    public async Task PieceClicked_HandlesInvalidRow()
+    {
+        // Arrange
+        var cut = RenderComponent<GameBoardBase>(parameters => parameters
+            .Add(p => p.Cols, 7)
+            .Add(p => p.Rows, 6)
+            .Add(p => p.InARow, 4)
+        );
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => cut.InvokeAsync(() => cut.Instance.PieceClicked(0, -1)));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => cut.InvokeAsync(() => cut.Instance.PieceClicked(0, 6)));
+    }
+
+    [Fact]
+    public void Reset_MakesAllPiecesBlank()
+    {
+        // Arrange
+        var cut = RenderComponent<GameBoardBase>(parameters => parameters
+            .Add(p => p.Cols, 7)
+            .Add(p => p.Rows, 6)
+            .Add(p => p.InARow, 4)
+        );
+
+        // Act
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(0, 0));
+        Assert.Equal(PieceColor.Red, cut.Instance.GetValidPiece(0, 5).Color);
+        cut.InvokeAsync(() => cut.Instance.Reset());
+
+        // Assert
+        var piece = cut.Instance.GetValidPiece(0, 5);
+        Assert.Equal(PieceColor.Blank, piece.Color);
     }
 }

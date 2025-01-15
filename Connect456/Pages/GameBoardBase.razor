@@ -120,7 +120,7 @@
     {
         if (!IsWithinBounds(col, row))
         {
-            throw new Exception($"Attempted to get piece for Col {col}, Row {row}. This is out of range!");
+            throw new ArgumentOutOfRangeException($"Attempted to get piece for Col {col}, Row {row}. This is out of range!");
         }
 
         return board.Board[col, row];
@@ -166,7 +166,7 @@
     }
 
     // Resets the game board to its initial state.
-    private void Reset()
+    internal void Reset()
     {
         board = new GameBoard(Cols, Rows);
         SwitchTurns();

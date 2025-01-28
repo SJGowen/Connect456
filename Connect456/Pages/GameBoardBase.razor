@@ -18,6 +18,7 @@
     GameBoard board;
     PieceColor currentTurn = PieceColor.Red;
     WinningPlay winningPlay;
+    bool boardFull => board.Board.Cast<GamePiece>().All(p => p.Color != PieceColor.Blank);
     string boardStyle = "background-color: blue; display: flex; flex-direction: row; max-width: fit-content";
 
     // Initializes the game board with the specified number of columns and rows.
@@ -176,7 +177,14 @@
 
 @if (winningPlay == null)
 {
-    <h2>@currentTurn's Turn!</h2>
+    if (boardFull)
+    {
+        <h2>It's a Draw! <button class="btn btn-success" @onclick="Reset">Restart</button></h2>
+    }
+    else
+    {
+        <h2>@currentTurn's Turn!</h2>
+    }
 }
 else
 {

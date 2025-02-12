@@ -18,7 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-	<ProjectReference Include="..\Connect456\Connect456.csproj" />
+    <ProjectReference Include="..\Connect456Common\Connect456Common.csproj" />
+    <ProjectReference Include="..\Connect456\Connect456.csproj" />
   </ItemGroup>
 
   <ItemGroup>

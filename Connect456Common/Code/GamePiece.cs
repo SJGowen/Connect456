@@ -1,4 +1,4 @@
-﻿namespace Connect456.Data;
+﻿namespace Connect456Common.Code;
 
 public class GamePiece
 {

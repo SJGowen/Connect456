@@ -1,5 +1,6 @@
 using Bunit;
 using Connect456.Pages;
+using Connect456Common.Pages;
 
 namespace Connect456.UnitTests;
 

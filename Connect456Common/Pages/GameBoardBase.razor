@@ -15,11 +15,11 @@
     [Parameter]
     public int InARow { get; set; }
 
-    GameBoard board = new GameBoard(7, 6);
+    GameBoard? board;
 
     PieceColor currentTurn = PieceColor.Red;
     Maybe<WinningPlay> winningPlay = Maybe<WinningPlay>.None;
-    bool boardFull => board.Board.Cast<GamePiece>().All(p => p.Color != PieceColor.Blank);
+    bool boardFull => board?.Board.Cast<GamePiece>().All(p => p.Color != PieceColor.Blank) ?? false;
     string boardStyle = "background-color: blue; display: flex; flex-direction: row; max-width: fit-content";
 
     // Initializes the game board with the specified number of columns and rows.
@@ -128,7 +128,7 @@
             throw new ArgumentOutOfRangeException($"Attempted to get piece for Col {col}, Row {row}. This is out of range!");
         }
 
-        return board.Board[col, row];
+        return board!.Board[col, row];
     }
 
     // Evaluates the board for a winning play in the specified direction.
@@ -203,7 +203,7 @@ else
             {
                 int savedCol = col;
                 int savedRow = row;
-                <div class="gamepiece @board.Board[col,row].Color.ToString().ToLower()" @onclick="@(() => PieceClicked(savedCol, savedRow))"
+                <div class="gamepiece @board!.Board[col,row].Color.ToString().ToLower()" @onclick="@(() => PieceClicked(savedCol, savedRow))"
                      style="@(IsGamePieceAWinningPiece(winningPlay, col, row) ? "opacity: 0.6" : "")"></div>
             }
         </div>

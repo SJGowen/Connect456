@@ -15,9 +15,10 @@
     [Parameter]
     public int InARow { get; set; }
 
-    GameBoard board;
+    GameBoard board = new GameBoard(7, 6);
+
     PieceColor currentTurn = PieceColor.Red;
-    WinningPlay winningPlay;
+    Maybe<WinningPlay> winningPlay = Maybe<WinningPlay>.None;
     bool boardFull => board.Board.Cast<GamePiece>().All(p => p.Color != PieceColor.Blank);
     string boardStyle = "background-color: blue; display: flex; flex-direction: row; max-width: fit-content";
 
@@ -31,7 +32,7 @@
     // Handles the click event on a game piece. Places a piece in the column and checks for a winning play.
     internal void PieceClicked(int col, int row)
     {
-        if (winningPlay != null) { return; }
+        if (winningPlay.HasValue) { return; }
 
         GamePiece clickedSpace = GetValidPiece(col, row);
 
@@ -43,7 +44,7 @@
 
             winningPlay = GetWinner(col, row);
 
-            if (winningPlay == null)
+            if (!winningPlay.HasValue)
             {
                 SwitchTurns();
             }
@@ -60,7 +61,7 @@
 
         return row;
     }
-    
+
     // Switches the turn between the two players.
     private void SwitchTurns()
     {
@@ -68,16 +69,19 @@
     }
 
     // Checks if there is a winning play starting from the specified column and row.
-    internal WinningPlay GetWinner(int col, int row)
+    internal Maybe<WinningPlay> GetWinner(int col, int row)
     {
-        return EvaluateForWinner(col, row, EvaluationDirection.Vertical) ??
-               EvaluateForWinner(col, row, EvaluationDirection.Horizontal) ??
-               EvaluateForWinner(col, row, EvaluationDirection.SlopeUp) ??
-               EvaluateForWinner(col, row, EvaluationDirection.SlopeDown);
+        var winner = EvaluateForWinner(col, row, EvaluationDirection.Vertical);
+        if (winner.HasValue) return winner;
+        winner = EvaluateForWinner(col, row, EvaluationDirection.Horizontal);
+        if (winner.HasValue) return winner;
+        winner = EvaluateForWinner(col, row, EvaluationDirection.SlopeUp);
+        if (winner.HasValue) return winner;
+        return EvaluateForWinner(col, row, EvaluationDirection.SlopeDown);
     }
 
     // Evaluates if there is a winning play in the specified direction.
-    private WinningPlay EvaluateForWinner(int col, int row, EvaluationDirection direction)
+    private Maybe<WinningPlay> EvaluateForWinner(int col, int row, EvaluationDirection direction)
     {
         GamePiece piece = GetValidPiece(col, row);
         (col, row) = MoveToStart(col, row, direction, piece.Color);
@@ -128,7 +132,7 @@
     }
 
     // Evaluates the board for a winning play in the specified direction.
-    private WinningPlay EvaluateBoardForWinner(int col, int row, EvaluationDirection direction)
+    private Maybe<WinningPlay> EvaluateBoardForWinner(int col, int row, EvaluationDirection direction)
     {
         var winningMoves = new List<string> { $"{col},{row}" };
 
@@ -150,20 +154,20 @@
 
         if (winningMoves.Count >= InARow)
         {
-            return new WinningPlay
-                {
-                    WinningMoves = winningMoves,
-                    WinningColor = currentTurn,
-                };
+            return Maybe<WinningPlay>.Some(new WinningPlay
+            {
+                WinningMoves = winningMoves,
+                WinningColor = currentTurn,
+            });
         }
 
-        return null;
+        return Maybe<WinningPlay>.None;
     }
 
     // Checks if the specified game piece is part of the winning play.
-    private bool IsGamePieceAWinningPiece(WinningPlay winningPlay, int col, int row)
+    private bool IsGamePieceAWinningPiece(Maybe<WinningPlay> winningPlay, int col, int row)
     {
-        return winningPlay?.WinningMoves?.Contains($"{col},{row}") ?? false;
+        return winningPlay.HasValue && winningPlay.Value.WinningMoves?.Contains($"{col},{row}") == true;
     }
 
     // Resets the game board to its initial state.
@@ -171,11 +175,11 @@
     {
         board = new GameBoard(Cols, Rows);
         SwitchTurns();
-        winningPlay = null;
+        winningPlay = Maybe<WinningPlay>.None;
     }
 }
 
-@if (winningPlay == null)
+@if (!winningPlay.HasValue)
 {
     if (boardFull)
     {
@@ -188,7 +192,7 @@
 }
 else
 {
-    <h2>@winningPlay.WinningColor Wins! <button class="btn btn-success" @onclick="Reset">Restart</button></h2>
+    <h2>@winningPlay.Value.WinningColor Wins! <button class="btn btn-success" @onclick="Reset">Restart</button></h2>
 }
 
 <div class="board" style="@boardStyle">

@@ -87,8 +87,7 @@ public class GameBoardBaseTests : TestContext
 
         // Assert
         var winner = cut.Instance.GetWinner(0, 2);
-        Assert.NotNull(winner);
-        Assert.Equal(PieceColor.Red, winner.WinningColor);
+        Assert.Equal(PieceColor.Red, winner.Value.WinningColor);
     }
 
     [Fact]
@@ -112,8 +111,8 @@ public class GameBoardBaseTests : TestContext
 
         // Assert
         var winner = cut.Instance.GetWinner(3, 5);
-        Assert.NotNull(winner);
-        Assert.Equal(PieceColor.Red, winner.WinningColor);
+        Assert.True(winner.HasValue);
+        Assert.Equal(PieceColor.Red, winner.Value.WinningColor);
     }
 
     [Fact]
@@ -141,8 +140,8 @@ public class GameBoardBaseTests : TestContext
 
         // Assert
         var winner = cut.Instance.GetWinner(4, 2);
-        Assert.NotNull(winner);
-        Assert.Equal(PieceColor.Red, winner.WinningColor);
+        Assert.True(winner.HasValue);
+        Assert.Equal(PieceColor.Red, winner.Value.WinningColor);
     }
 
     [Fact]
@@ -171,8 +170,8 @@ public class GameBoardBaseTests : TestContext
 
         // Assert
         var winner = cut.Instance.GetWinner(2, 2);
-        Assert.NotNull(winner);
-        Assert.Equal(PieceColor.Yellow, winner.WinningColor);
+        Assert.True(winner.HasValue);
+        Assert.Equal(PieceColor.Yellow, winner.Value.WinningColor);
     }
 
     [Fact]

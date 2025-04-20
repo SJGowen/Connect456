@@ -175,6 +175,47 @@ public class GameBoardBaseTests : TestContext
     }
 
     [Fact]
+    public void GetWinner_DetectsDoubleWin()
+    {
+        // Arrange
+        var cut = RenderComponent<GameBoardBase>(parameters => parameters
+            .Add(p => p.Cols, 7)
+            .Add(p => p.Rows, 6)
+            .Add(p => p.InARow, 4)
+        );
+
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(0, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(1, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(1, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(2, 0)); 
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(3, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(2, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(2, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(4, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(3, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(4, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(3, 0));
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(4, 0));
+
+        // Final move to create the double win
+        cut.InvokeAsync(() => cut.Instance.PieceClicked(3, 0));
+
+        // Assert
+        var winner = cut.Instance.GetWinner(3, 2); // Check the last placed piece
+        Assert.True(winner.HasValue);
+        Assert.Equal(PieceColor.Red, winner.Value.WinningColor);
+
+        // Verify that all winning moves are included
+        var expectedWinningMoves = new List<string>
+        {
+            "0,5", "1,4", "2,3", "3,2", "3,3", "3,4", "3,5", // Winning Moves
+        };
+
+        Assert.Equal(expectedWinningMoves.OrderBy(x => x), winner.Value.WinningMoves.OrderBy(x => x));
+    }
+
+
+    [Fact]
     public async Task PieceClicked_HandlesInvalidColumn()
     {
         // Arrange

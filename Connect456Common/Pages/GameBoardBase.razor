@@ -8,11 +8,11 @@
     [Parameter]
     public int InARow { get; set; }
 
-    GameBoard? board;
+    GameBoard board = new GameBoard(7, 6);
 
     PieceColor currentTurn = PieceColor.Red;
     Maybe<WinningPlay> winningPlay = Maybe<WinningPlay>.None;
-    bool boardFull => board?.Board.Cast<GamePiece>().All(p => p.Color != PieceColor.Blank) ?? false;
+    bool boardFull => board.Board.Cast<GamePiece>().Any(p => p.Color != PieceColor.Blank);
     string boardStyle = "background-color: blue; display: flex; flex-direction: row; max-width: fit-content";
 
     protected override void OnInitialized()
@@ -25,7 +25,7 @@
     {
         if (winningPlay.HasValue) { return; }
 
-        GamePiece clickedSpace = GetValidPiece(col, row);
+        var clickedSpace = GetValidPiece(col, row);
 
         if (clickedSpace.Color == PieceColor.Blank)
         {
@@ -59,13 +59,29 @@
 
     internal Maybe<WinningPlay> GetWinner(int col, int row)
     {
-        var winner = EvaluateForWinner(col, row, EvaluationDirection.Vertical);
-        if (winner.HasValue) return winner;
-        winner = EvaluateForWinner(col, row, EvaluationDirection.Horizontal);
-        if (winner.HasValue) return winner;
-        winner = EvaluateForWinner(col, row, EvaluationDirection.SlopeUp);
-        if (winner.HasValue) return winner;
-        return EvaluateForWinner(col, row, EvaluationDirection.SlopeDown);
+        var allWinningMoves = new List<string>();
+
+        // Check all four directions and aggregate winning moves
+        foreach (var direction in Enum.GetValues<EvaluationDirection>())
+        {
+            var winner = EvaluateForWinner(col, row, direction);
+            if (winner.HasValue)
+            {
+                allWinningMoves.AddRange(winner.Value.WinningMoves);
+            }
+        }
+
+        // If there are any winning moves, return a WinningPlay with all moves
+        if (allWinningMoves.Any())
+        {
+            return Maybe<WinningPlay>.Some(new WinningPlay
+            {
+                WinningMoves = allWinningMoves.Distinct().ToList(), // Ensure no duplicates
+                WinningColor = currentTurn
+            });
+        }
+
+        return Maybe<WinningPlay>.None;
     }
 
     private Maybe<WinningPlay> EvaluateForWinner(int col, int row, EvaluationDirection direction)
@@ -80,22 +96,22 @@
     {
         while (IsWithinBounds(col, row) && GetValidPiece(col, row).Color == color)
         {
-            (col, row) = direction switch
-            {
-                EvaluationDirection.Vertical => (col, row - 1),
-                EvaluationDirection.Horizontal => (col - 1, row),
-                EvaluationDirection.SlopeUp => (col - 1, row + 1),
-                EvaluationDirection.SlopeDown => (col - 1, row - 1),
-                _ => (col, row)
-            };
+            (col, row) = GetNextPosition(col, row, direction, reverse: true);
         }
+
+        return GetNextPosition(col, row, direction, reverse: false);
+    }
+
+    private (int, int) GetNextPosition(int col, int row, EvaluationDirection direction, bool reverse)
+    {
+        var step = reverse ? -1 : 1;
 
         return direction switch
         {
-            EvaluationDirection.Vertical => (col, row + 1),
-            EvaluationDirection.Horizontal => (col + 1, row),
-            EvaluationDirection.SlopeUp => (col + 1, row - 1),
-            EvaluationDirection.SlopeDown => (col + 1, row + 1),
+            EvaluationDirection.Vertical => (col, row + step),
+            EvaluationDirection.Horizontal => (col + step, row),
+            EvaluationDirection.SlopeUp => (col + step, row - step),
+            EvaluationDirection.SlopeDown => (col + step, row + step),
             _ => (col, row)
         };
     }
@@ -121,16 +137,12 @@
 
         while (true)
         {
-            (col, row) = direction switch
-            {
-                EvaluationDirection.Vertical => (col, row + 1),
-                EvaluationDirection.Horizontal => (col + 1, row),
-                EvaluationDirection.SlopeUp => (col + 1, row - 1),
-                EvaluationDirection.SlopeDown => (col + 1, row + 1),
-                _ => (col, row)
-            };
+            (col, row) = GetNextPosition(col, row, direction, reverse: false);
 
-            if (!IsWithinBounds(col, row) || GetValidPiece(col, row).Color != currentTurn) { break; }
+            if (!IsWithinBounds(col, row) || GetValidPiece(col, row).Color != currentTurn)
+            {
+                break;
+            }
 
             winningMoves.Add($"{col},{row}");
         }
@@ -138,10 +150,10 @@
         if (winningMoves.Count >= InARow)
         {
             return Maybe<WinningPlay>.Some(new WinningPlay
-            {
-                WinningMoves = winningMoves,
-                WinningColor = currentTurn,
-            });
+                {
+                    WinningMoves = winningMoves,
+                    WinningColor = currentTurn,
+                });
         }
 
         return Maybe<WinningPlay>.None;
@@ -149,7 +161,7 @@
 
     private bool IsGamePieceAWinningPiece(Maybe<WinningPlay> winningPlay, int col, int row)
     {
-        return winningPlay.HasValue && winningPlay.Value.WinningMoves?.Contains($"{col},{row}") == true;
+        return winningPlay.HasValue && winningPlay.Value.WinningMoves.Contains($"{col},{row}");
     }
 
     internal void Reset()

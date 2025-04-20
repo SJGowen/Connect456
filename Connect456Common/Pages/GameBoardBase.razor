@@ -1,6 +1,8 @@
 @using Connect456Common.Code
 
 @code {
+    private const string DefaultBoardStyle = "background-color: blue; display: flex; flex-direction: row; max-width: fit-content;";
+
     [Parameter]
     public int Cols { get; set; }
     [Parameter]
@@ -12,13 +14,21 @@
 
     PieceColor currentTurn = PieceColor.Red;
     Maybe<WinningPlay> winningPlay = Maybe<WinningPlay>.None;
-    bool boardFull => board.Board.Cast<GamePiece>().Any(p => p.Color != PieceColor.Blank);
-    string boardStyle = "background-color: blue; display: flex; flex-direction: row; max-width: fit-content";
+    bool boardFull => !board.Board.Cast<GamePiece>().Any(p => p.Color == PieceColor.Blank);
+    string boardStyle = DefaultBoardStyle;
 
     protected override void OnInitialized()
     {
         board = new GameBoard(Cols, Rows);
         StateHasChanged();
+    }
+
+    internal void Reset()
+    {
+        board = new GameBoard(Cols, Rows);
+        SwitchTurns();
+        winningPlay = Maybe<WinningPlay>.None;
+        boardStyle = DefaultBoardStyle;
     }
 
     internal void PieceClicked(int col, int row)
@@ -61,22 +71,25 @@
     {
         var allWinningMoves = new List<string>();
 
-        // Check all four directions and aggregate winning moves
         foreach (var direction in Enum.GetValues<EvaluationDirection>())
         {
             var winner = EvaluateForWinner(col, row, direction);
+
             if (winner.HasValue)
             {
                 allWinningMoves.AddRange(winner.Value.WinningMoves);
             }
         }
 
-        // If there are any winning moves, return a WinningPlay with all moves
         if (allWinningMoves.Any())
         {
+            // Set the winning color dynamically
+            var winningColor = currentTurn == PieceColor.Red ? "red" : "yellow";
+            boardStyle = $"--winning-color: {winningColor}; {DefaultBoardStyle}";
+
             return Maybe<WinningPlay>.Some(new WinningPlay
             {
-                WinningMoves = allWinningMoves.Distinct().ToList(), // Ensure no duplicates
+                WinningMoves = allWinningMoves.Distinct().ToList(),
                 WinningColor = currentTurn
             });
         }
@@ -163,13 +176,6 @@
     {
         return winningPlay.HasValue && winningPlay.Value.WinningMoves.Contains($"{col},{row}");
     }
-
-    internal void Reset()
-    {
-        board = new GameBoard(Cols, Rows);
-        SwitchTurns();
-        winningPlay = Maybe<WinningPlay>.None;
-    }
 }
 
 @if (!winningPlay.HasValue)
@@ -196,8 +202,9 @@ else
             {
                 int savedCol = col;
                 int savedRow = row;
-                <div class="gamepiece @board!.Board[col,row].Color.ToString().ToLower()" @onclick="@(() => PieceClicked(savedCol, savedRow))"
-                     style="@(IsGamePieceAWinningPiece(winningPlay, col, row) ? "opacity: 0.6" : "")"></div>
+                <div class="gamepiece @board!.Board[col,row].Color.ToString().ToLower() @(IsGamePieceAWinningPiece(winningPlay, col, row) ? "winning-piece" : "")"
+                     @onclick="@(() => PieceClicked(savedCol, savedRow))">
+                </div>
             }
         </div>
     }

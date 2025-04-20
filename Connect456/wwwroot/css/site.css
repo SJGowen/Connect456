@@ -142,6 +142,24 @@ app {
     }
 }
 
+@keyframes flash {
+    0% {
+        background-color: springgreen;
+    }
+
+    50% {
+        background-color: var(--winning-color);
+    }
+
+    100% {
+        background-color: springgreen
+    }
+}
+
+.winning-piece {
+    animation: flash 1s infinite;
+}
+
 .board {
     background-color: blue;
     display: flex;

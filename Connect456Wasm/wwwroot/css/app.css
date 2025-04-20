@@ -113,6 +113,24 @@ code {
     text-align: start;
 }
 
+@keyframes flash {
+    0% {
+        background-color: white;
+    }
+
+    50% {
+        background-color: var(--winning-color);
+    }
+
+    100% {
+        background-color: white;
+    }
+}
+
+.winning-piece {
+    animation: flash 1s infinite;
+}
+
 .board {
     background-color: blue;
     display: flex;

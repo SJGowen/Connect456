@@ -144,7 +144,7 @@ app {
 
 @keyframes flash {
     0% {
-        background-color: springgreen;
+        background-color: green;
     }
 
     50% {
@@ -152,7 +152,7 @@ app {
     }
 
     100% {
-        background-color: springgreen
+        background-color: green
     }
 }
 

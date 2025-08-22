@@ -115,7 +115,7 @@ code {
 
 @keyframes flash {
     0% {
-        background-color: green;
+        background-color: springgreen;
     }
 
     50% {
@@ -123,7 +123,7 @@ code {
     }
 
     100% {
-        background-color: green;
+        background-color: springgreen;
     }
 }
 
